@@ -3,351 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.14.0/dist/full.css" rel="stylesheet">
-    <title>موقع الأحاديث</title>
+    <title>خادم ديسكورد</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.14.8/dist/full.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
-            font-family: 'Arial', sans-serif;
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
             overflow-x: hidden;
         }
-        .parallax {
-            background-image: url('./nature-background.jpg');
-            height: 500px;
-            background-attachment: fixed;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
+        .bounce {
+            animation: bounce 2s infinite;
         }
-        .fade-in {
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .fade-in.visible {
-            opacity: 1;
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
         }
     </style>
-</head>
-<body class="scroll-smooth">
-    <header class="bg-white shadow">
-        <div class="container mx-auto py-4 flex justify-between items-center">
-            <h1 class="text-3xl font-bold">موقع الأحاديث</h1>
-            <nav>
-                <a class="btn btn-primary" href="#hadith-section">الحصول على حديث</a>
-                <a class="btn btn-secondary" href="#auth-section" id="auth-link">تسجيل الدخول</a>
-            </nav>
-        </div>
-    </header>
-    <section class="parallax flex items-center justify-center text-white text-4xl">
-        <div>اقتباس من الأحاديث النبوية</div>
-    </section>
-    <main class="container mx-auto my-8">
-        <section id="hadith-section">
-            <h2 class="text-2xl font-semibold mb-4">احصل على حديث</h2>
-            <button id="generate-hadith" class="btn btn-info mb-4">توليد حديث</button>
-            <div id="hadith-output" class="p-4 border border-gray-300 rounded fade-in text-blue-800 bg-blue-200"></div>
-        </section>
-        <section id="auth-section" class="hidden">
-            <h2 class="text-2xl font-semibold mb-4">تسجيل الدخول</h2>
-            <input type="email" id="email" placeholder="البريد الإلكتروني" class="input input-bordered mb-2">
-            <input type="password" id="password" placeholder="كلمة المرور" class="input input-bordered mb-2">
-            <button id="login-button" class="btn btn-primary">تسجيل الدخول</button>
-            <button id="signup-button" class="btn btn-secondary">إنشاء حساب</button>
-            <div id="auth-message" class="mt-4"></div>
-        </section>
-    </main>
-    <footer class="bg-white p-4 text-center">
-        <p class="text-gray-600">حقوق الطبع والنشر &copy; 2023</p>
-    </footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.6.8/firebase-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.6.8/firebase-auth.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.6.8/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.0/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+</head>
+<body>
+    <div class="flex items-center justify-center h-screen">
+        <div id="login-box" class="bg-white rounded-lg shadow-xl p-8 bounce">
+            <h1 class="text-center text-2xl text-gray-800 mb-4">تسجيل الدخول إلى ديسكورد</h1>
+            <button id="discord-btn" class="btn btn-primary w-full">تسجيل دخول عبر ديسكورد</button>
+        </div>
+    </div>
+    <div id="user-info" class="hidden fixed top-0 right-0 m-4 bg-white p-4 rounded-lg shadow-lg">
+        <img id="user-avatar" class="h-12 w-12 rounded-full" src="" alt="الصورة الشخصية">
+        <p id="user-name" class="text-gray-800 mt-2"></p>
+        <button id="logout-btn" class="btn btn-secondary mt-2">تسجيل خروج</button>
+    </div>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyD4xxxxx", 
-            authDomain: "your-app.firebaseapp.com", 
-            projectId: "your-project-id", 
-            storageBucket: "your-app.appspot.com", 
-            messagingSenderId: "your-sender-id", 
-            appId: "1:your-app-id:web:your-web-id"
+        const discordBtn = document.getElementById('discord-btn');
+        const userInfo = document.getElementById('user-info');
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginBox = document.getElementById('login-box');
+
+        discordBtn.onclick = function() {
+            const fakeUser = {
+                displayName: 'اسم المستخدم',
+                photoURL: './path/to/avatar.png'
+            };
+            userAvatar.src = fakeUser.photoURL;
+            userName.innerText = fakeUser.displayName;
+            userInfo.classList.remove('hidden');
+            loginBox.classList.add('hidden');
         };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-        const hadithDatabase = [
-            { text: "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى.", narrator: "عمر بن الخطاب", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "من لا يُؤثِرُ النّاس لم يُؤثِرهُ اللّه.", narrator: "الإمام الشافعي", book: "تفسير البيضاوي", authenticity: "حسن" },
-            { text: "إن الله جميل يحب الجمال.", narrator: "البراء بن عازب", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "المؤمن مرآة المؤمن.", narrator: "أبو داود", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "أحب الناس إلى الله أنفعهم للناس.", narrator: "ابن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "الدين نصيحة.", narrator: "تميم الداري", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أكثروا من الصلاة علي يوم الجمعة.", narrator: "أبو هريرة", book: "السنن الكبرى", authenticity: "صحيح" },
-            { text: "أفضل الأعمال الصلاة في وقتها.", narrator: "عبد الله بن مسعود", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "رحم الله امرءا أحيى قلبي.", narrator: "البراء بن عازب", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "من صبر على مصيبة، كان له أجرها.", narrator: "ابن مسعود", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "إن الله يدخل من عباده من يشاء.", narrator: "ابن عباس", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الكلمة الطيبة صدقة.", narrator: "أبو هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجتنبوا السبع الموبقات.", narrator: "ابن عباس", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "ما من مسلم يغرس غرسًا، إلا كان له فيه أجر.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "الصلاة أفضل عمود الدين.", narrator: "عبد الله بن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "من يتصدق ثوابًا للوجه الله.", narrator: "أبو هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أفضل الأعمال إيمان بالله ورسوله.", narrator: "الإمام الشافعي", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "صلة الرحم، وحسن الخلق.", narrator: "عائشة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "إن الله يحب إذا عمل أحدكم عملاً أن يتقنه.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "رحمة الله وبركته في النسب.", narrator: "البراء بن عازب", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "افعل الخير أينما كنت.", narrator: "عبد الله بن مسعود", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "لاتجعل الحقد في قلبك.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "تذكير الذات بالمعاصي.", narrator: "عمار", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "إنما الأعمال بالنيات.", narrator: "عمر بن الخطاب", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أحب لأخيك ما تحب لنفسك.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "المسلم من سلم المسلمون من لسانه ويده.", narrator: "عبد الله بن عمر", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الدين النصيحة.", narrator: "تميم الداري", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أكثروا من ذكر الله.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "صلاة الجماعة أفضل من صلاة الفرد.", narrator: "ابن عباس", book: "مجمع الزوائد", authenticity: "صحيح" },
-            { text: "من لا يُؤثِرُ الناس لم يُؤثِرهُ اللّه.", narrator: "الإمام الشافعي", book: "تفسير البيضاوي", authenticity: "حسن" },
-            { text: "أفضل الصدقة ما كان عن ظهر غنى.", narrator: "أبو هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "لَا يَفْرَكْ مُؤْمِنٌ مُؤْمِنَةً.", narrator: "ابن عباس", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجتنبوا السبع الموبقات.", narrator: "البراء بن عازب", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "الدين مذاقا.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اللهم بارك لي في رزقي.", narrator: "ابن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "في كل كبد رطبة صدقة.", narrator: "ابن عمر", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "من يطلب العلم كان له أجر كل من تعلم.", narrator: "أبو هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "استغفروا ربكم إنه كان غفارا.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "إن أكرمكم عند الله أتقاكم.", narrator: "أبو هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "من صام رمضان إيمانا واحتسابا غُفِر له ما تقدم من ذنبه.", narrator: "أبو هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اطعموهم من جوع وأكسوهم من عري.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "لَا تحقرن من المعروف شيئًا.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أفضل الناس أنفعهم للناس.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "من غشنا فليس منا.", narrator: "أبو هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "تطهروا فإن الطهور شطر الإيمان.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "الجلوس في المسجد عبادة.", narrator: "عمر بن الخطاب", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "إن الله يحب إذا عمل أحدكم عملاً أن يتقنه.", narrator: "أبو هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "إن الملائكة تستغفر للمؤمن.", narrator: "عبد الله بن عمر", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "إن الله مع الصابرين.", narrator: "ابن عباس", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "إنما الأعمال بالنيات.", narrator: "عمر بن الخطاب", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الكذب يسجر على النار.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "من تائب كانت له الجنة.", narrator: "عبد الله بن عباس", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أكثروا من ذكر الله.", narrator: "أبو هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "العقل زينة.", narrator: "عائشة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الجنة تحت أقدام الأمهات.", narrator: "البراءة بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "طفل الرضيع يكون له والدين.", narrator: "عبد الله بن عمر", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أحبوا الله لما يغذوكم من نعم.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "علم علم صدقة.", narrator: "ابن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "صلاة الجماعة أفضل من صلاة الفرد.", narrator: "الصحابة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حسن الخلق هو أعلى أجر.", narrator: "عبد الله بن عمر", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "كل معروف صدقة.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "استغفروا الله واذكروا كلما افتقرتم.", narrator: "أبي هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الوالد أوسط أبواب الجنة.", narrator: "عبد الله بن عمر", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "أحب للناس ما تحب لنفسك.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "صوم رمضان إيمانا واحتسابا غفر له ما تقدم من ذنبه.", narrator: "أبو هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الصلاة مع الأهل أمر محمود.", narrator: "عمر بن عبد العزيز", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "صلاة الجماعة أفضل من صلاة الفرد.", narrator: "الصحابة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "استغفروا الله واذكروا كلما سجدتم.", narrator: "أبي هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أذكروا الله في البطانة.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحب فضول المال المرابح.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "أحب الأعمال إلى الله.", narrator: "عائشة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا خيركم من بينكم.", narrator: "عبد الله بن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحبوا الله وأحسنوا إيمانكم.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حسن الخلق هو لوحة الزينة.", narrator: "عبد الله بن عمر", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "من لا يُؤثِرُ الآخرين ليس منا.", narrator: "الإمام الشافعي", book: "تفسير البيضاوي", authenticity: "حسن" },
-            { text: "الطيب وصحبة خليلة.", narrator: "ابن عباس", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حب الله يحرر الإنسان.", narrator: "ابن عمر", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الصدق أمانة.", narrator: "أنس بن مالك", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "الإخلاص للنفس، فالنفس أمانة.", narrator: "ابن عباس", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حسن الظن بالله.", narrator: "أبي هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اهتمامكم بالدين يعد انشغالاً.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "من لا يمتلك حساً حسنًا.", narrator: "عبد الله بن عمر", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "حب الخير يجر إلى الخير.", narrator: "البراء بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الجلال هبة من الله.", narrator: "عبد الله بن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "الرحمة تحوز على الأجر.", narrator: "عائشة", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "كل فرد ينصح له.", narrator: "ابن عباس", book: "صيح مسلم", authenticity: "صحيح" },
-            { text: "وعاء الأمانة.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "دعوا للرحمة.", narrator: "ابن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحبوا الله وحفظوه والإخلاص له.", narrator: "أبي هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الأحباب يحتفظ بهم الله.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحبوا أكثر من محبة الله.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "طلب العلم فريضة.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أحب ما يحب الله.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "كونوا سلفًا للدين.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "طلب العلم فكرًا.", narrator: "ابن عمر", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "طلب العلم فريضة على كل مسلم.", narrator: "عائشة", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "حب الخير يجلب الخير.", narrator: "عبد الله بن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حب الفقراء.", narrator: "أبي هريرة", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الإخلاص سبيل النجاح.", narrator: "أنس بن مالك", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "من لا يشكر الناس لا يشكر الله.", narrator: "عباس", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الصدق في القول محبة.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "استغفروا الله من المعاصي.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "كل معروف ثواب.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "كل إنسان سيتلقى الثواب.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "من يؤمن بالرحمة يحظى بالرحمة.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحب تماثيل الأجداد.", narrator: "عائشة", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "استغفروا الله.", narrator: "عبد الله بن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "كل عبادة صدقة.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الجمع بين الأديان.", narrator: "عبد الله بن عباس", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "أحب ما يحب الله للآخرين.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "احرص على أن تكون مرارًا قليلة.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الجنة تحت أقدام الأمهات.", narrator: "عبد الله بن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "احرص على حسن الظن.", narrator: "عائشة", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "الصدقة تطهر النفوس.", narrator: "عبد الله بن عمر", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "أحبوا الله وأحسنوا إيمانكم.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا كل الشكر للآخرين.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "كل شخص سيكون نورًا.", narrator: "عبد الله بن عباس", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "حب العلم والنور.", narrator: "عبد الله بن عمر", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "استغفروا الله واذكروا اجتماعكم.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الشكر لله على النعم.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "دعونا نكون جيدين مع الناس.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حب البلاد كسارات الأوقات.", narrator: "ابن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "أحب ما تحب لنفسك للآخرين.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "كن نورًا للمسيطرين.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا المحبة لمن حولكم.", narrator: "عبد الله بن عمر", book: "سنن الترمذي", authenticity: "صحيح" },
-            { text: "من نظر لشيء فسقط في بؤسه.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حسن الخلق هو ما يواجه به الناس.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "اجعلوا المحبة رسوم أعظم.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحبوا المجالًا في الناس.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا عطاءكم في الناس.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا القراءة حياة.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "كل إنسان له قسط في العمل.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "أحب أن يتجمع أهل التقوى.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "لا تتوانوا في حسن الخلق.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا بيتكم مكان التوبة.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "ولا تساهموا في الجدل.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا عذر الشك في المسائل.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "الرب يبتلينا.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحبوا جميع الناس.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الهدوء والسلام بينكم.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "إعملوا على مكان النور.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "كل فرد مصدر جيدة.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "اجعلوا علمكم مفيداً.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "لا تحقيروا من المعروف شيئًا.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أحبوا العلم وبذله.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "كن عوناً لرجل مظلوم.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "لا تنسوا أي مساعدة.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "لا تحقيروا من العطاء.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا الذكر في كل وقت.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "النجاح يحتاج الصبر.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "التقوى رأس الدين.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا البساطة في ضميركم.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "سند آخر حول الصحابة.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "الدعاء في كل فعل.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا العطاء بين الفقراء.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "الفرح في الإخلاص.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا روح الأمور بالهدوء.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "المساهمة في العمل.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "تفكروا في الآخرة.", narrator: "عبد الله بن عمر", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "حسن الظن بالله.", narrator: "أنس بن مالك", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا المودة والقوة.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "مثل الأصدقاء الأعمال الصالحة.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "ابحثوا عن القصص العظيمة.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "صاحب الأموال الطيبة.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "العقل ذكي.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا الجدي في النفوس.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "أحبوا المهام الصعبة.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجمعوا الإيثار للمساعدة.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "الخدمة أفضل أبواب النجاح.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا المتعة في الصدقات.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حب المساعدات.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "تهيئة المؤمن.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا التعاون مبدأ مستمر.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "تفكروا في النعم.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا العلم مفيدا للجميع.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "حسن الخلق أفضل ما يوجه.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "الكرم ينبل الأخلاق.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "استعدوا للزوار.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "أحبوا ما أحب الصواب.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "تعاونوا على البر.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا القلوب موجهة للإخلاص.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "من يتق الله، دبره.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "الوقت أفضل من الذهب.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الخلق خير.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "العلم يكتسب.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "احفظوا إيمانكم وأعمالكم.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "حب الخير طريق القلب.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا الفلاح الأخلاقي بينكم.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "لا تتجاهلوا عن الطاعة.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا الجهد لتحقيق الأهداف.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "تفكروا في قلوبكم وفي دينكم.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "اجعلوا المحبة بينكم.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "خذوا من الأوقات ما فيه خير.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الهدوء قاعدة.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "تعاونوا على البر والتقوى.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا الفخر في الأخلاق.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "حب الخير يجلب الخير.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا رابط النور دائمًا.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الفرح في القلب.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا الجهد لرفعة النفس.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا الفرح في الفرح.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "اذكروا ما ينفعكم.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا النور دائمًا رفيق.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الورع زينة.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "أحبوا الصبر في الشدائد.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا المودة تؤتي أثرها.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "اجعلوا العطاء مع المحبة.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا الرحمة للآخرين.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الفرح في قلوبكم.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا الجهد جيداً.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا الأخلاق والأدب في كل شيء.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "حب الخير ينير القلوب.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا التعاون مبدأكم.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الفرح شفيعًا.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا الصفاء في التعامل.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "أحبوا التواضع.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" },
-            { text: "اجعلوا الأمل زادكم.", narrator: "أبي هريرة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا القلوب محبة.", narrator: "أنس بن مالك", book: "صحيح البخاري", authenticity: "صحيح" },
-            { text: "اجعلوا الفرح في القلوب.", narrator: "عبد الله بن عمر", book: "سنن أبي داود", authenticity: "صحيح" },
-            { text: "اجعلوا العمل في علو.", narrator: "عائشة", book: "صحيح مسلم", authenticity: "صحيح" },
-            { text: "اجعلوا العلم طريقكم.", narrator: "عبد الله بن عباس", book: "مجمع الزوائد", authenticity: "حسن" }
-        ];
-        let usedHadiths = [];
-        document.getElementById("generate-hadith").onclick = function() {
-            if (usedHadiths.length === hadithDatabase.length) {
-                usedHadiths = [];
-            }
-            let randomIndex;
-            do {
-                randomIndex = Math.floor(Math.random() * hadithDatabase.length);
-            } while (usedHadiths.includes(randomIndex));
-            usedHadiths.push(randomIndex);
-            const randomHadith = hadithDatabase[randomIndex];
-            const outputElement = document.getElementById("hadith-output");
-            outputElement.innerHTML = `
-                <p class="text-xl font-semibold">${randomHadith.text}</p>
-                <p class="text-md">راوي: ${randomHadith.narrator}</p>
-                <p class="text-md">كتاب: ${randomHadith.book}</p>
-                <p class="text-md">الصحة: ${randomHadith.authenticity}</p>
-            `;
-            outputElement.classList.remove("fade-in");
-            void outputElement.offsetWidth;
-            outputElement.classList.add("fade-in", "visible");
+
+        logoutBtn.onclick = function() {
+            userInfo.classList.add('hidden');
+            loginBox.classList.remove('hidden');
         };
-        document.getElementById("login-button").onclick = function() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            auth.signInWithEmailAndPassword(email, password).then(() => {
-                document.getElementById("auth-message").textContent = "تم تسجيل الدخول بنجاح.";
-                document.getElementById("auth-section").classList.add("hidden");
-            }).catch(error => {
-                document.getElementById("auth-message").textContent = error.message;
-            });
-        };
-        document.getElementById("signup-button").onclick = function() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            auth.createUserWithEmailAndPassword(email, password).then(() => {
-                document.getElementById("auth-message").textContent = "تم إنشاء الحساب بنجاح.";
-                document.getElementById("auth-section").classList.add("hidden");
-            }).catch(error => {
-                document.getElementById("auth-message").textContent = error.message;
-            });
-        };
-        document.getElementById("auth-link").onclick = function() {
-            document.getElementById("auth-section").classList.toggle("hidden");
-        };
-        ScrollReveal().reveal('.parallax');
+
+        ScrollReveal().reveal('.bounce', { delay: 200 });
     </script>
 </body>
 </html>
