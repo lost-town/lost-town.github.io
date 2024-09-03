@@ -1,70 +1,53 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خادم ديسكورد</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.14.8/dist/full.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <title>Login with Discord</title>
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
-            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #2c2f33;
+            color: white;
+            font-family: Arial, sans-serif;
         }
-        .bounce {
-            animation: bounce 2s infinite;
+        .login-container {
+            text-align: center;
         }
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
+        .login-button {
+            background-color: #7289da;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .login-button:hover {
+            background-color: #5b6eae;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 </head>
 <body>
-    <div class="flex items-center justify-center h-screen">
-        <div id="login-box" class="bg-white rounded-lg shadow-xl p-8 bounce">
-            <h1 class="text-center text-2xl text-gray-800 mb-4">تسجيل الدخول إلى ديسكورد</h1>
-            <button id="discord-btn" class="btn btn-primary w-full">تسجيل دخول عبر ديسكورد</button>
-        </div>
+    <div class="login-container">
+        <h1>Login with Discord</h1>
+        <button class="login-button" onclick="loginWithDiscord()">Login with Discord</button>
     </div>
-    <div id="user-info" class="hidden fixed top-0 right-0 m-4 bg-white p-4 rounded-lg shadow-lg">
-        <img id="user-avatar" class="h-12 w-12 rounded-full" src="" alt="الصورة الشخصية">
-        <p id="user-name" class="text-gray-800 mt-2"></p>
-        <button id="logout-btn" class="btn btn-secondary mt-2">تسجيل خروج</button>
-    </div>
+
     <script>
-        const discordBtn = document.getElementById('discord-btn');
-        const userInfo = document.getElementById('user-info');
-        const userName = document.getElementById('user-name');
-        const userAvatar = document.getElementById('user-avatar');
-        const logoutBtn = document.getElementById('logout-btn');
-        const loginBox = document.getElementById('login-box');
+        function loginWithDiscord() {
+            const clientId = '1280571868763652096'; // ضع الـ CLIENT_ID هنا
+            const redirectUri = encodeURIComponent('http://localhost:5500/callback'); // ضع رابط إعادة التوجيه
+            const scope = encodeURIComponent('identify email');
+            const responseType = 'token';
 
-        discordBtn.onclick = function() {
-            const fakeUser = {
-                displayName: 'اسم المستخدم',
-                photoURL: './path/to/avatar.png'
-            };
-            userAvatar.src = fakeUser.photoURL;
-            userName.innerText = fakeUser.displayName;
-            userInfo.classList.remove('hidden');
-            loginBox.classList.add('hidden');
-        };
-
-        logoutBtn.onclick = function() {
-            userInfo.classList.add('hidden');
-            loginBox.classList.remove('hidden');
-        };
-
-        ScrollReveal().reveal('.bounce', { delay: 200 });
+            const discordLoginUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+            window.location.href = discordLoginUrl;
+        }
     </script>
 </body>
 </html>
